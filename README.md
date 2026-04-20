@@ -253,6 +253,22 @@ npm start
 4. Set up SSL/HTTPS
 5. Configure CORS if needed
 
+### Vercel Notes
+
+- Vercel should use a networked production database such as PostgreSQL.
+- The current Prisma schema in this repo is not suitable for a deployed SQLite file workflow on Vercel.
+- Add these environment variables in Vercel Project Settings:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/srcycle?schema=public"
+NEXTAUTH_URL="https://s-r-cycle.vercel.app"
+NEXTAUTH_SECRET="generate-a-new-production-secret"
+```
+
+- `NEXTAUTH_SECRET` is required in production.
+- `NEXTAUTH_URL` must match the deployed domain.
+- `DATABASE_URL` must point to a real hosted database, not `file:./dev.db`.
+
 ## Troubleshooting
 
 ### Database Connection Issues
