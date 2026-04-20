@@ -193,7 +193,8 @@ export default function StockPage() {
                   className="input-field"
                   placeholder="0"
                   min="0"
-                  step="0.01"
+                  step="any"
+                  inputMode="decimal"
                   required
                 />
               </div>
@@ -208,7 +209,8 @@ export default function StockPage() {
                   className="input-field"
                   placeholder="0"
                   min="0"
-                  step="0.01"
+                  step="any"
+                  inputMode="decimal"
                 />
               </div>
 

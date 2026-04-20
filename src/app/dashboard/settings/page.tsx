@@ -22,7 +22,40 @@ export default function SettingsPage() {
     defaultGSTRate: 18
   })
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json()
+        if (data?.settings) {
+          setSettings(data.settings)
+        }
+        if (data?.currentUser?.username) {
+          setUsername(data.currentUser.username)
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error)
+      } finally {
+        setInitialLoading(false)
+      }
+    }
+
+    if (session?.user?.role === 'ADMINISTRATOR') {
+      loadSettings()
+    } else {
+      setInitialLoading(false)
+    }
+  }, [session?.user?.role])
 
   // Only allow administrators to access
   if (session?.user?.role !== 'ADMINISTRATOR') {
@@ -41,6 +74,12 @@ export default function SettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (password && password !== confirmPassword) {
+      setMessage('Password and confirm password do not match')
+      return
+    }
+
     setLoading(true)
     setMessage('')
 
@@ -48,14 +87,22 @@ export default function SettingsPage() {
       const response = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
+        body: JSON.stringify({
+          settings,
+          username,
+          password
+        })
       })
 
       if (response.ok) {
-        setMessage('Settings saved successfully!')
+        const data = await response.json()
+        setMessage(data?.reloginRequired ? 'Settings saved. Username/password updated. Please sign in again with new credentials.' : 'Settings saved successfully!')
+        setPassword('')
+        setConfirmPassword('')
         setTimeout(() => setMessage(''), 3000)
       } else {
-        setMessage('Error saving settings')
+        const data = await response.json().catch(() => null)
+        setMessage(data?.error || 'Error saving settings')
       }
     } catch (error) {
       console.error('Error saving settings:', error)
@@ -63,6 +110,19 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-1 p-8">
+          <div className="card p-8 text-center">
+            <p className="text-gray-600">Loading settings...</p>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -141,6 +201,36 @@ export default function SettingsPage() {
             <div className="card p-6">
               <h2 className="text-lg font-semibold mb-4">Current User</h2>
               <div className="space-y-3">
+                <div>
+                  <label className="block text-sm text-gray-600">Username</label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="input-field mt-1"
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600">New Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input-field mt-1"
+                    placeholder="Leave blank to keep current password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="input-field mt-1"
+                    placeholder="Re-enter new password"
+                  />
+                </div>
                 <div>
                   <p className="text-sm text-gray-600">Name</p>
                   <p className="font-semibold">{session?.user?.name}</p>

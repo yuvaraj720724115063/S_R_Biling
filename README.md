@@ -238,6 +238,48 @@ npm run test
 
 ## Production Deployment
 
+### Quick Deploy From GitHub (Without Committing `.env`)
+
+1. Keep secrets local only.
+  - Use `.env.local` for development.
+  - Do not commit `.env` or `.env.local`.
+  - This repo already ignores env files in `.gitignore`.
+
+2. Commit only safe files.
+  - Commit source code and `.env.example` only.
+
+3. Push to GitHub.
+
+```bash
+git add .
+git commit -m "prepare deployment"
+git push origin main
+```
+
+4. Connect your GitHub repository to hosting (example: Vercel).
+  - Import the repo from GitHub.
+  - Framework preset: Next.js.
+
+5. Add environment variables in hosting dashboard.
+  - Open Project Settings -> Environment Variables.
+  - Add these keys with production values:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/srcycle?schema=public"
+NEXTAUTH_URL="https://your-domain.vercel.app"
+NEXTAUTH_SECRET="your-strong-secret"
+```
+
+6. Deploy.
+  - Trigger first deploy from dashboard or by pushing new commits.
+
+7. Verify.
+  - Login page loads.
+  - Auth works.
+  - Database read/write works.
+
+If `.env` was committed in the past, rotate those secrets and remove it from Git history before production use.
+
 ### Build for Production
 
 \`\`\`bash

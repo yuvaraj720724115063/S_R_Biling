@@ -22,8 +22,15 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [showStockModal, setShowStockModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [stockSubmitting, setStockSubmitting] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [selectedProductForStock, setSelectedProductForStock] = useState<Product | null>(null)
+  const [stockAdjustmentType, setStockAdjustmentType] = useState<'ADD' | 'REMOVE' | 'ADJUST'>('ADD')
+  const [stockQuantity, setStockQuantity] = useState('')
+  const [stockRate, setStockRate] = useState('')
+  const [stockNotes, setStockNotes] = useState('')
   const [formData, setFormData] = useState({
     hsnCode: '',
     name: '',
@@ -165,6 +172,58 @@ export default function ProductsPage() {
     setShowModal(true)
   }
 
+  const openStockModal = (product: Product) => {
+    setSelectedProductForStock(product)
+    setStockAdjustmentType('ADD')
+    setStockQuantity('')
+    setStockRate('')
+    setStockNotes('')
+    setShowStockModal(true)
+  }
+
+  const handleStockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!selectedProductForStock) {
+      return
+    }
+
+    const parsedQuantity = parseFloat(stockQuantity)
+    if (Number.isNaN(parsedQuantity) || parsedQuantity < 0) {
+      alert('Please enter a valid quantity')
+      return
+    }
+
+    setStockSubmitting(true)
+    try {
+      const response = await fetch('/api/stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: selectedProductForStock.id,
+          quantity: parsedQuantity,
+          type: stockAdjustmentType,
+          rate: stockRate ? parseFloat(stockRate) : null,
+          notes: stockNotes
+        })
+      })
+
+      if (response.ok) {
+        await fetchProducts()
+        setShowStockModal(false)
+        alert('Stock updated successfully')
+      } else {
+        const error = await response.json().catch(() => null)
+        alert(error?.error || 'Error updating stock')
+      }
+    } catch (error) {
+      console.error('Error updating stock:', error)
+      alert('Error updating stock')
+    } finally {
+      setStockSubmitting(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -240,6 +299,17 @@ export default function ProductsPage() {
                               title="Delete"
                             >
                               <Trash2 size={18} />
+                            </button>
+                            <button
+                              onClick={() => openStockModal(product)}
+                              className="p-2 text-secondary hover:bg-secondary/10 rounded transition-colors"
+                              title="Adjust Quantity"
+                            >
+                              <img
+                                src="/adjust-quantity.webp"
+                                alt="Adjust Quantity"
+                                className="h-[18px] w-[18px] object-contain"
+                              />
                             </button>
                           </div>
                         </td>
@@ -366,6 +436,86 @@ export default function ProductsPage() {
                   }}
                   className="btn-secondary flex-1"
                   disabled={submitting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock Adjustment Modal */}
+      {showStockModal && selectedProductForStock && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="card p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-2">Adjust Quantity</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              {selectedProductForStock.name} (Current: {selectedProductForStock.stock?.currentQuantity || 0})
+            </p>
+
+            <form onSubmit={handleStockSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Adjustment Type</label>
+                <select
+                  value={stockAdjustmentType}
+                  onChange={(e) => setStockAdjustmentType(e.target.value as 'ADD' | 'REMOVE' | 'ADJUST')}
+                  className="input-field"
+                >
+                  <option value="ADD">Add Quantity</option>
+                  <option value="REMOVE">Remove Quantity</option>
+                  <option value="ADJUST">Set Exact Quantity</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  {stockAdjustmentType === 'ADJUST' ? 'New Quantity' : 'Quantity'}
+                </label>
+                <input
+                  type="number"
+                  value={stockQuantity}
+                  onChange={(e) => setStockQuantity(e.target.value)}
+                  className="input-field"
+                  min="0"
+                  step="any"
+                  inputMode="decimal"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Rate (Optional)</label>
+                <input
+                  type="number"
+                  value={stockRate}
+                  onChange={(e) => setStockRate(e.target.value)}
+                  className="input-field"
+                  min="0"
+                  step="any"
+                  inputMode="decimal"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Notes (Optional)</label>
+                <textarea
+                  value={stockNotes}
+                  onChange={(e) => setStockNotes(e.target.value)}
+                  className="input-field"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary flex-1" disabled={stockSubmitting}>
+                  {stockSubmitting ? 'Updating...' : 'Update Quantity'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowStockModal(false)}
+                  className="btn-secondary flex-1"
+                  disabled={stockSubmitting}
                 >
                   Cancel
                 </button>

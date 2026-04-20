@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,6 +41,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
       <div className="card p-8 w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="mb-4 flex justify-center">
+            <Image
+              src="/srlogo.webp"
+              alt="S.R. Cycle logo"
+              width={90}
+              height={90}
+              className="rounded-md bg-gray-100 p-1"
+              priority
+            />
+          </div>
           <h1 className="text-3xl font-bold text-primary mb-2">S.R. Cycle & Auto Spares</h1>
           <p className="text-gray-600">Billing & Inventory System</p>
           <p className="text-sm text-gray-500 mt-1">Thennampulam - 614 806</p>

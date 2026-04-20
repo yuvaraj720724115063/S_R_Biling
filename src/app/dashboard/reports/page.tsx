@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Sidebar from '@/components/Sidebar'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 interface DashboardStats {
@@ -10,7 +9,7 @@ interface DashboardStats {
   totalProducts: number
   lowStockItems: number
   billsByType: { type: string; count: number }[]
-  monthlyRevenue: { month: string; revenue: number }[]
+  monthlyRevenueChart: { month: string; revenue: number }[]
 }
 
 export default function ReportsPage() {
@@ -38,22 +37,17 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-8">
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading reports...</p>
-          </div>
-        </main>
-      </div>
+      <main className="flex-1 p-8">
+        <div className="text-center py-12">
+          <p className="text-gray-500">Loading reports...</p>
+        </div>
+      </main>
     )
   }
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <main className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto">
+    <main className="flex-1 p-8">
+      <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-primary mb-2">Reports & Analytics</h1>
             <p className="text-gray-600">Business performance and insights</p>
@@ -99,7 +93,7 @@ export default function ReportsPage() {
             <div className="card p-6">
               <h2 className="text-lg font-semibold mb-4">Monthly Revenue</h2>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={stats?.monthlyRevenue || []}>
+                <LineChart data={stats?.monthlyRevenueChart || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -110,8 +104,7 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   )
 }

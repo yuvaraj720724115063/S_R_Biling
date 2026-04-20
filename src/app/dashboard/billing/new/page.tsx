@@ -26,9 +26,9 @@ interface Product {
 
 interface BillItem {
   productId: string
-  quantity: number
-  rate: number
-  taxRate: number
+  quantity: string
+  rate: string
+  taxRate: string
 }
 
 export default function NewBillPage() {
@@ -47,6 +47,11 @@ export default function NewBillPage() {
   const [creatingCustomer, setCreatingCustomer] = useState(false)
   const [productSearch, setProductSearch] = useState('')
   const [selectedProductId, setSelectedProductId] = useState('')
+
+  const parseDecimal = (value: string) => {
+    const parsed = parseFloat(value)
+    return Number.isNaN(parsed) ? 0 : parsed
+  }
 
   useEffect(() => {
     fetchCustomers()
@@ -134,8 +139,11 @@ export default function NewBillPage() {
     let taxAmount = 0
 
     billItems.forEach((item) => {
-      const lineAmount = item.quantity * item.rate
-      const lineTax = (lineAmount * item.taxRate) / 100
+      const quantity = parseDecimal(item.quantity)
+      const rate = parseDecimal(item.rate)
+      const taxRate = parseDecimal(item.taxRate)
+      const lineAmount = quantity * rate
+      const lineTax = (lineAmount * taxRate) / 100
       subtotal += lineAmount
       taxAmount += lineTax
     })
@@ -153,9 +161,9 @@ export default function NewBillPage() {
       ...billItems,
       {
         productId: product.id,
-        quantity: 1,
-        rate: rate,
-        taxRate: product.gstRate
+        quantity: '1',
+        rate: rate.toString(),
+        taxRate: product.gstRate.toString()
       }
     ])
     setSelectedProductId('')
@@ -179,6 +187,12 @@ export default function NewBillPage() {
     setLoading(true)
     try {
       const { subtotal, taxAmount, grandTotal } = calculateTotals()
+      const normalizedItems = billItems.map((item) => ({
+        ...item,
+        quantity: parseDecimal(item.quantity),
+        rate: parseDecimal(item.rate),
+        taxRate: parseDecimal(item.taxRate)
+      }))
       
       const response = await fetch('/api/billing', {
         method: 'POST',
@@ -186,7 +200,7 @@ export default function NewBillPage() {
         body: JSON.stringify({
           billType,
           customerId,
-          billItems,
+          billItems: normalizedItems,
           subtotal,
           taxAmount,
           grandTotal
@@ -373,8 +387,11 @@ export default function NewBillPage() {
                     <tbody>
                       {billItems.map((item, index) => {
                         const product = products.find((p) => p.id === item.productId)
-                        const subtotal = item.quantity * item.rate
-                        const tax = (subtotal * item.taxRate) / 100
+                        const quantity = parseDecimal(item.quantity)
+                        const rate = parseDecimal(item.rate)
+                        const taxRate = parseDecimal(item.taxRate)
+                        const subtotal = quantity * rate
+                        const tax = (subtotal * taxRate) / 100
                         const total = subtotal + tax
                         return (
                           <tr key={index} className="table-row">
@@ -385,12 +402,13 @@ export default function NewBillPage() {
                                 value={item.quantity}
                                 onChange={(e) => {
                                   const items = [...billItems]
-                                  items[index].quantity = parseFloat(e.target.value) || 0
+                                  items[index].quantity = e.target.value
                                   setBillItems(items)
                                 }}
                                 className="input-field w-16 text-center"
                                 min="0"
-                                step="0.01"
+                                step="any"
+                                inputMode="decimal"
                               />
                             </td>
                             <td className="px-4 py-2 text-center">
@@ -399,12 +417,13 @@ export default function NewBillPage() {
                                 value={item.rate}
                                 onChange={(e) => {
                                   const items = [...billItems]
-                                  items[index].rate = parseFloat(e.target.value) || 0
+                                  items[index].rate = e.target.value
                                   setBillItems(items)
                                 }}
                                 className="input-field w-20 text-center"
                                 min="0"
-                                step="0.01"
+                                step="any"
+                                inputMode="decimal"
                                 placeholder="0"
                               />
                             </td>
@@ -414,13 +433,14 @@ export default function NewBillPage() {
                                 value={item.taxRate}
                                 onChange={(e) => {
                                   const items = [...billItems]
-                                  items[index].taxRate = parseFloat(e.target.value) || 0
+                                  items[index].taxRate = e.target.value
                                   setBillItems(items)
                                 }}
                                 className="input-field w-16 text-center"
                                 min="0"
                                 max="100"
-                                step="0.01"
+                                step="any"
+                                inputMode="decimal"
                               />
                             </td>
                             <td className="px-4 py-2 text-right font-semibold">₹{subtotal.toFixed(2)}</td>

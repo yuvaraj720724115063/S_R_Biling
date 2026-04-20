@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, 
@@ -41,13 +42,7 @@ const navItems: NavItem[] = [
     roles: ['ADMINISTRATOR', 'BILLER']
   },
   {
-    label: 'Stock Management',
-    href: '/dashboard/stock',
-    icon: <Package size={20} />,
-    roles: ['ADMINISTRATOR', 'STOCK_MANAGER']
-  },
-  {
-    label: 'Products',
+    label: 'Inventory',
     href: '/dashboard/products',
     icon: <Package size={20} />,
     roles: ['ADMINISTRATOR', 'STOCK_MANAGER']
@@ -84,8 +79,20 @@ export default function Sidebar() {
   return (
     <div className="h-screen w-64 bg-primary text-white flex flex-col fixed left-0 top-0 print:hidden">
       <div className="p-6 border-b border-white/10">
-        <h1 className="text-xl font-bold">S.R. Cycle</h1>
-        <p className="text-sm text-white/70">Auto Spares</p>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/srlogo.webp"
+            alt="S.R. Cycle logo"
+            width={44}
+            height={44}
+            className="rounded bg-white/90 p-1"
+            priority
+          />
+          <div>
+            <h1 className="text-xl font-bold leading-tight">S.R. Cycle</h1>
+            <p className="text-sm text-white/70">Auto Spares</p>
+          </div>
+        </div>
       </div>
 
       <nav className="flex-1 p-4 overflow-y-auto">
