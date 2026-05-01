@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && prisma db push --skip-generate && node prisma/seed.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
