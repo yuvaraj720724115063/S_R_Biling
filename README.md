@@ -1,4 +1,4 @@
-# S.R. Cycle & Auto Spares Billing System
+# S.R.Cycle & Auto Spares Billing System
 
 Billing, inventory, and customer management web app for S.R. Cycle & Auto Spares.
 
